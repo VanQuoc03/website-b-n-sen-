@@ -1,0 +1,30 @@
+.hero__categories ul {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.hero__categories ul.expanded {
+    max-height: 500px; /* Thiết lập chiều cao tối đa khi mở rộng */
+}
+
+.price-section {
+    transition: margin-top 0.3s ease;
+}
+
+
+/* Login - Forgot password */
+.forgot-password {
+    display: block;
+    text-align: right;
+    margin-top: 5px;
+}
+
+
+/* Xử lý ảnh của giỏ hàng */
+.shoping__cart__item img {
+    max-width: 100px; /* Chiều rộng tối đa */
+    height: auto;     /* Tự điều chỉnh chiều cao theo tỷ lệ */
+    display: block;   /* Đảm bảo ảnh không bị giãn */
+    margin: 0 auto;   /* Căn giữa */
+}
