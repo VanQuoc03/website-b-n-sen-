@@ -33,8 +33,8 @@ if (isset($_GET['search'])) {
 } else {
     $search = null; // hoặc xử lý trường hợp không có ID phù hợp
 }
-
 $category_list = getall_category();
+
 $orderSort = isset($_GET['sort']) ? $_GET['sort'] : "";
 if ($orderSort == "asc") {
     $orderCondition = "ORDER BY price ASC";
@@ -47,6 +47,9 @@ if ($orderSort == "az") {
 } elseif ($orderSort == "za") {
     $orderCondition = "ORDER BY TRIM(name_product) COLLATE utf8_unicode_ci DESC";
 }
+
+
+
 $category_product = getall_product($id, $search, $orderCondition, $minPrice, $maxPrice);
 // Truy vấn để đếm số lượng sản phẩm phù hợp
 $totalProducts = count($category_product);
@@ -126,8 +129,8 @@ $totalProducts = count($category_product);
         </div>
         <nav class="humberger__menu__nav mobile-menu">
             <ul>
-                <li class="active"><a href="../index.php">Home</a></li>
-                <li><a href="?page_layout=product">Sản phẩm </a>
+                <li><a href="../index.php">Home</a></li>
+                <li class="active"><a href="?page_layout=product">Sản phẩm </a>
                     <ul class="header__menu__dropdown">
                         <?php
                         // Kiểm tra xem trang hiện tại có phải là trang product.php hay không
@@ -239,8 +242,8 @@ $totalProducts = count($category_product);
                 <div class="col-lg-6">
                     <nav class="header__menu">
                         <ul>
-                            <li class="active"><a href="../index.php">Home</a></li>
-                            <li><a href="?page_layout=product">Sản phẩm <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
+                            <li><a href="../index.php">Home</a></li>
+                            <li class="active"><a href="?page_layout=product">Sản phẩm <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                                 <ul class="header__menu__dropdown">
                                     <?php
                                     foreach ($category_list as $item) {
@@ -299,14 +302,6 @@ $totalProducts = count($category_product);
                             <?php
                             show_cate($category_list);
                             ?>
-                            <!-- <li><a href="#">Sen đá</a></li>
-                            <li><a href="#">Xương rồng</a></li>
-                            <li><a href="#">Chậu đất nung</a></li>
-                            <li><a href="#">Chậu sứ</a></li>
-                            <li><a href="#">Phụ kiện trang trí</a></li>
-                            <li><a href="#">Đất trồng, phân bón</a></li>
-                            <li><a href="#">Sỏi trang trí</a></li>
-                            <li><a href="#">Dụng cụ trồng sen đá</a></li> -->
                         </ul>
                     </div>
                 </div>
@@ -314,10 +309,6 @@ $totalProducts = count($category_product);
                     <div class="hero__search">
                         <div class="hero__search__form">
                             <form action="#">
-                                <!-- <div class="hero__search__categories">
-                                    All Categories
-                                    <span class="arrow_carrot-down"></span>
-                                </div> -->
                                 <input type="hidden" value="<?php echo $id; ?>" name="id" />
                                 <input type="text" placeholder="What do you need?" name="search">
                                 <button type="submit" class="site-btn">SEARCH</button>
@@ -340,21 +331,33 @@ $totalProducts = count($category_product);
     <!-- Hero Section End -->
 
     <!-- Breadcrumb Section Begin -->
-    <!-- <section class="breadcrumb-section set-bg" data-setbg="img/breadcrumb.jpg">
+    <section class="breadcrumb-section set-bg">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <div class="breadcrumb__text">
-                        <h2>Organi Shop</h2>
-                        <div class="breadcrumb__option">
-                            <a href="./index.html">Home</a>
-                            <span>Shop</span>
-                        </div>
+                        <?php
+                        if ($id) {
+                            // Lấy thông tin chi tiết danh mục dựa vào ID
+                            $current_category = array_filter($category_list, function ($category) use ($id) {
+                                return $category['category_id'] == $id;
+                            });
+                            if (!empty($current_category)) {
+                                $current_category = reset($current_category);
+                                echo "<h2>" . htmlspecialchars($current_category['name_cate']) . "</h2>";
+                            } else {
+                                echo "<h2>Danh mục không tồn tại</h2>";
+                            }
+                        } else {
+                            echo "<h2>Tất cả sản phẩm</h2>";
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
         </div>
-    </section> -->
+    </section>
+
     <!-- Breadcrumb Section End -->
 
     <!-- Product Section Begin -->

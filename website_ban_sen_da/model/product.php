@@ -48,6 +48,8 @@ function getall_product($category_id = 0, $keyword = "", $orderCondition = "", $
     return $kq;
 }
 
+
+
 function get_pro_by_id($idpro)
 {
     $conn = connectdb(); // Đảm bảo kết nối PDO được sử dụng
@@ -55,7 +57,6 @@ function get_pro_by_id($idpro)
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id', $idpro, PDO::PARAM_INT); // Tránh SQL Injection
     $stmt->execute();
-
     // Trả về một hàng duy nhất
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -126,6 +127,7 @@ function show_product($category_product)
                     <a href="' . $link_detail . '">
                         <img src="../img/product/' . $product['image_product'] . '" alt=""></a>
                         <ul class="product__item__pic__hover">
+                            <li><a href="' . $link_detail . '"><i class="fa fa-eye"></i></a></li>
                             <li><a href="' . $link_add_to_cart . '"><i class="fa fa-shopping-cart"></i></a></li>
                         </ul>
                     </div>

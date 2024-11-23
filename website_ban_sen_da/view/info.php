@@ -55,34 +55,7 @@ if (!$user_data) {
 $error_message = "";
 $success_message = "";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fullname = $_POST['fullname'];
-    $email = $_POST['email'];
-    $phone_number = $_POST['phone_number'];
-    $address = $_POST['address'];
 
-    // Kiểm tra dữ liệu
-    if (empty($fullname) || empty($email) || empty($phone_number) || empty($address)) {
-        $error_message = "Vui lòng điền đầy đủ thông tin.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error_message = "Email không hợp lệ.";
-    } else {
-        // Cập nhật thông tin vào cơ sở dữ liệu
-        $stmt = $conn->prepare("UPDATE user SET fullname = :fullname, email = :email, phone_number = :phone_number, address = :address WHERE user = :username");
-        $stmt->bindParam(':fullname', $fullname);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':phone_number', $phone_number);
-        $stmt->bindParam(':username', $username);
-        $stmt->bindParam(':address', $address);
-
-
-        if ($stmt->execute()) {
-            $success_message = "Cập nhật thông tin thành công!";
-        } else {
-            $error_message = "Đã xảy ra lỗi khi cập nhật thông tin.";
-        }
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -405,8 +378,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="row">
                 <div class="col-lg-8 offset-lg-2">
                     <div class="account__form">
-                        <h3>Cập Nhật Thông Tin</h3>
-
+                        <h3>Chào <?= htmlspecialchars($user_data['fullname'] ?? '') ?> </h3>
                         <!-- Hiển thị thông báo -->
                         <?php if (!empty($error_message)) : ?>
                             <div class="alert alert-danger"><?= $error_message ?></div>
@@ -417,32 +389,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <!-- Form cập nhật thông tin -->
                         <form action="" method="POST">
-                            <div class="form-group">
-                                <label for="username">Tên tài khoản</label>
-                                <input type="text" class="form-control" id="username" value="<?= htmlspecialchars($user_data['user']) ?>" disabled>
-                            </div>
-                            <div class="form-group">
-                                <label for="fullname">Họ và tên</label>
-                                <input type="text" class="form-control" id="fullname" name="fullname"
-                                    value="<?= htmlspecialchars($user_data['fullname'] ?? '') ?>" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                    value="<?= htmlspecialchars($user_data['email'] ?? '') ?>" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="phone_number">Số điện thoại</label>
-                                <input type="text" class="form-control" id="phone_number" name="phone_number"
-                                    value="<?= htmlspecialchars($user_data['phone_number'] ?? '') ?>" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="address">Địa chỉ</label>
-                                <input type="text" class="form-control" id="address" name="address"
-                                    value="<?= htmlspecialchars($user_data['address'] ?? '') ?>" required>
-                            </div>
+                            <a href="userinfo.php">Cập nhật thông tin</a>
+                            <a href="change_pass.php">Đổi mật khẩu</a>
 
-                            <button type="submit" class="btn btn-primary">Cập Nhật</button>
+
                         </form>
                     </div>
                 </div>

@@ -77,7 +77,7 @@
                             </a>
                             <ul class="featured__item__pic__hover">
                                 <li><a href="index.php?page_layout=product_detail&idpro=<?php echo $product['product_id']; ?>"><i class="fa fa-eye"></i></a></li>
-                                <li><a href="add-to-cart.php?id=<?php echo $product['product_id']; ?>"><i class="fa fa-shopping-cart"></i></a></li>
+                                <li><a href="view/cart.php?idpro=<?php echo $product['product_id']; ?>"><i class="fa fa-shopping-cart"></i></a></li>
                             </ul>
                         </div>
                         <div class="featured__item__text">
@@ -93,10 +93,9 @@
 <!-- Featured Products Section End -->
 
 <!-- Banner Begin -->
-<div class="banner">
+<!-- <div class="banner">
     <div class="container">
         <div class="row">
-            <!-- Bạn có thể thêm các banner quảng cáo ở đây -->
             <div class="col-lg-6 col-md-6 col-sm-6">
                 <div class="banner__pic">
                     <img src="../img/banner/banner-1.jpg" alt="">
@@ -109,7 +108,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 <!-- Banner End -->
 
 <!-- Latest Products Section Begin -->
@@ -179,7 +178,7 @@
 <!-- Latest Products Section End -->
 
 <!-- Blog Section Begin -->
-<section class="from-blog spad">
+<!-- <section class="from-blog spad">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
@@ -189,7 +188,6 @@
             </div>
         </div>
         <div class="row">
-            <!-- Hiển thị các bài viết từ cơ sở dữ liệu -->
             <?php foreach ($latest_posts as $post): ?>
                 <div class="col-lg-4 col-md-4 col-sm-6">
                     <div class="blog__item">
@@ -199,8 +197,6 @@
                         <div class="blog__item__text">
                             <ul>
                                 <li><i class="fa fa-calendar-o"></i> <?php echo date('d/m/Y', strtotime($post['date_created'])); ?></li>
-                                <!-- Nếu có chức năng bình luận, bạn có thể hiển thị số bình luận -->
-                                <!-- <li><i class="fa fa-comment-o"></i> 5</li> -->
                             </ul>
                             <h5><a href="blog-detail.php?id=<?php echo $post['post_id']; ?>"><?php echo htmlspecialchars($post['title']); ?></a></h5>
                             <p><?php echo htmlspecialchars($post['summary']); ?></p>
@@ -210,7 +206,7 @@
             <?php endforeach; ?>
         </div>
     </div>
-</section>
+</section> -->
 <!-- Blog Section End -->
 
 <!-- Footer Section Begin -->

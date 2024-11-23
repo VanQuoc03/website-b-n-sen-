@@ -75,7 +75,7 @@ function get_best_selling_products($limit = 5)
     global $conn;
     $sql = "SELECT p.*, SUM(od.quantity) AS total_sold
             FROM products p
-            INNER JOIN orders_detail od ON p.product_id = od.product_id
+            INNER JOIN order_details od ON p.product_id = od.product_id
             GROUP BY p.product_id
             ORDER BY total_sold DESC
             LIMIT :limit";

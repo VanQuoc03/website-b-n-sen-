@@ -347,7 +347,7 @@ $category_list = getall_category();
     <!-- Hero Section End -->
 
     <!-- Breadcrumb Section Begin -->
-    <section class="breadcrumb-section set-bg" data-setbg="../img/breadcrumb.jpg">
+    <section class="breadcrumb-section set-bg">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
@@ -372,7 +372,7 @@ $category_list = getall_category();
                 <!-- Bảng giỏ hàng -->
                 <div class="col-lg-12">
                     <div class="shoping__cart__table">
-                        <form method="POST" action="cart.php">
+                        <form method="POST" action="">
                             <table>
                                 <thead>
                                     <tr>
@@ -448,7 +448,7 @@ $category_list = getall_category();
                             <li>Tạm tính <span><?= number_format($total_price, 0, ',', '.') ?>đ</span></li>
                             <li>Tổng cộng <span><?= number_format($total_price, 0, ',', '.') ?>đ</span></li>
                         </ul>
-                        <a href="#" class="primary-btn">TIẾN HÀNH THANH TOÁN</a>
+                        <a href="orders.php" class="primary-btn">TIẾN HÀNH THANH TOÁN</a>
                     </div>
                 </div>
             </div>

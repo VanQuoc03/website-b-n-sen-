@@ -19,8 +19,12 @@ function getuserinfo($user, $pass)
     $kq = $stmt->FetchALL();
     return $kq;
 }
-
-
-
-
-
+function get_info_user($username)
+{
+    $conn = connectdb();
+    $sql = "SELECT * FROM user WHERE user = :user";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':user', $username);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}

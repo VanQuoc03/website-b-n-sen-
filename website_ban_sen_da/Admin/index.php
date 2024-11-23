@@ -76,7 +76,9 @@ if (isset($_SESSION['role']) && ($_SESSION['role'] == 1)) {
                 break;
         }
     } else {
-        require_once '../Admin/Products/category_product.php';
+        header("Location: ../Admin/Products/category_product.php");
+        exit;
+        // require_once '../Admin/Products/category_product.php';
     }
 } else {
     header('location: login.php');

@@ -1,107 +1,126 @@
 <?php
 session_start();
-ob_start();
+
 require_once "../model/config.php";
 require_once "../model/user.php";
 require_once "../model/category.php";
 require_once "../model/product.php";
 require_once "../model/functions.php";
+require_once "../model/orders.php";
 
-// Lấy ID sản phẩm từ tham số GET
-$product_id = isset($_GET['idpro']) ? intval($_GET['idpro']) : 0;
+$current_page = basename($_SERVER['PHP_SELF']);
 
-// Kiểm tra nếu ID sản phẩm hợp lệ
-if ($product_id > 0) {
-    // Tăng view_count
-    increment_view_count($product_id);
-    // Lấy thông tin sản phẩm để hiển thị
-    $product = get_product_by_id($product_id); // Bạn cần định nghĩa hàm này trong functions.php
-    if ($product) {
-        // Hiển thị thông tin sản phẩm
-        // ...
-    } else {
-        echo "Không tìm thấy sản phẩm.";
-    }
-} else {
-    echo "ID sản phẩm không hợp lệ.";
-}
-
-// Khởi tạo tổng số lượng sản phẩm và tổng giá trị trong giỏ hàng
-$total_items = 0;
-$total_price = 0.0;
-// Tính tổng số lượng sản phẩm và tổng giá trị trong giỏ hàng
-if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
-    $total_items = count($_SESSION['cart']); // Đếm số lượng sản phẩm (không cộng dồn số lượng)
-    foreach ($_SESSION['cart'] as $item) {
-        $total_price += $item['price'] * $item['quantity'];
-    }
-}
-
-if (isset($_GET['idpro'])) {
-    $idpro = $_GET['idpro'];
-    $product_detail = get_pro_by_id($idpro);
-    if ($product_detail === false) {
-        echo "Lỗi: Không tìm thấy sản phẩm với ID được cung cấp.";
-    }
-    $category_list = getall_category();
-    $id_cate = $product_detail['category_id'];
-    $related_product = get_product_category_lienquan($id_cate, $idpro, 4);
-} else {
-    echo "Lỗi: ID sản phẩm không được cung cấp.";
-}
-
-if (isset($_GET['idpro'])) {
-    $id = $_GET['idpro'];
+if (isset($_GET['id'])) {
+    $id = $_GET['id'];
 } else {
     $id = null; // hoặc xử lý trường hợp không có ID phù hợp
 }
 if (isset($_GET['search'])) {
     $search = $_GET['search'];
-    $category_id = isset($_GET['id']) ? $_GET['id'] : 0;
-    header("Location: view/product.php?id=$category_id&search=$search");
 } else {
     $search = null; // hoặc xử lý trường hợp không có ID phù hợp
 }
-$current_page = basename($_SERVER['PHP_SELF']);
 
+$userName = $_SESSION['username'];
+$userData = get_info_user($userName);
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php"); // Nếu chưa đăng nhập, chuyển hướng về trang login
+    exit();
+}
+
+
+// Lấy danh sách danh mục sản phẩm
 $category_list = getall_category();
 
-if (is_array($product_detail) && !empty($product_detail)) {
-    extract($product_detail);
-} else {
-    echo "Lỗi: Sản phẩm không tồn tại hoặc không thể truy xuất chi tiết sản phẩm.";
+// Tính tổng số lượng sản phẩm và tổng giá trị trong giỏ hàng
+$total_items = 0;
+$total_price = 0.0;
+
+if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $item) {
+        $total_items += $item['quantity'];
+        $total_price += $item['price'] * $item['quantity'];
+    }
 }
-$category_product = getall_product($id);
-$html_sp_lienquan = show_product_lienquan($related_product);
+
+// Nếu giỏ hàng trống, chuyển hướng về trang giỏ hàng
+if ($total_items == 0) {
+    header("Location: cart.php");
+    exit();
+}
+
+//Thêm orders và order_detail vào database
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fullname = $_POST['fullname'];
+    $phone = $_POST['phone'];
+    $address = $_POST['address'];
+    $email = $_POST['email'];
+    $note = $_POST['note'];
+    $user = $userData['id'];
+    $total_amount = $total_price;
+
+    try {
+
+        $conn->beginTransaction();
+        $order_id = addOrder($conn, $fullname, $phone, $address, $email, $note, $user, $total_amount);
+
+        addOrderDetail($conn, $order_id, $_SESSION['cart']);
+        $conn->commit();
+
+        unset($_SESSION['cart']);
+        $_SESSION['order_success'] = true;
+        header("Location: order_success.php?order_id=$order_id");
+    } catch (Exception $e) {
+        $conn->rollBack();
+        $error_message = "Đã xảy ra lỗi khi đặt hàng: " . $e->getMessage();
+    }
+}
+
+
 ?>
 <!DOCTYPE html>
-<html lang="zxx">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Ogani Template">
-    <meta name="keywords" content="Ogani, unica, creative, html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title><?= htmlspecialchars($product_detail['name_product']) ?> - Chi tiết sản phẩm</title>
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
+    <title>Thông Tin Tài Khoản</title>
 
     <!-- Css Styles -->
     <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css">
     <link rel="stylesheet" href="../css/font-awesome.min.css" type="text/css">
-    <link rel="stylesheet" href="../css/elegant-icons.css" type="text/css">
-    <link rel="stylesheet" href="../css/nice-select.css" type="text/css">
-    <link rel="stylesheet" href="../css/jquery-ui.min.css" type="text/css">
-    <link rel="stylesheet" href="../css/owl.carousel.min.css" type="text/css">
-    <link rel="stylesheet" href="../css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="../css/style.css" type="text/css">
-    <link rel="stylesheet" href="../css/my.css" type="text/css">
-
 </head>
 
 <body>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="description" content="Ogani Template">
+        <meta name="keywords" content="Ogani, unica, creative, html">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Sản phẩm</title>
+
+        <!-- Google Font -->
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
+
+        <!-- Css Styles -->
+        <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="../css/font-awesome.min.css" type="text/css">
+        <link rel="stylesheet" href="../css/elegant-icons.css" type="text/css">
+        <link rel="stylesheet" href="../css/nice-select.css" type="text/css">
+        <link rel="stylesheet" href="../css/jquery-ui.min.css" type="text/css">
+        <link rel="stylesheet" href="../css/owl.carousel.min.css" type="text/css">
+        <link rel="stylesheet" href="../css/slicknav.min.css" type="text/css">
+        <link rel="stylesheet" href="../css/style.css" type="text/css">
+        <link rel="stylesheet" href="../css/my.css" type="text/css">
+        <style>
+
+        </style>
+    </head>
+
+
     <!-- Page Preloder -->
     <div id="preloder">
         <div class="loader"></div>
@@ -118,7 +137,7 @@ $html_sp_lienquan = show_product_lienquan($related_product);
                 <li><a href="#"><i class="fa fa-heart"></i> <span>1</span></a></li>
                 <li><a href="cart.php"><i class="fa fa-shopping-bag"></i> <span><?= $total_items ?></span></a></li>
             </ul>
-            <div class="header__cart__price">item: <span><span><?= number_format($total_price, 0, ',', '.') ?>đ</span></div>
+            <div class="header__cart__price">item: <span><?= number_format($total_price, 0, ',', '.') ?>đ</span></div>
         </div>
         <div class="humberger__menu__widget">
             <!-- <div class="header__top__right__language">
@@ -134,10 +153,10 @@ $html_sp_lienquan = show_product_lienquan($related_product);
                 <?php
                 if (isset($_SESSION['username']) && ($_SESSION['username'] != "")) {
                     echo '<a href="../index.php?page_layout=userinfo">' . $_SESSION['username'] . '</a>';
-                    if ($current_page == 'product.php') {
-                        echo '<a href="../index.php?page_layout=logout">Thoát</a>';
-                    } else { // Nếu đang ở trang index.php hoặc các trang khác
+                    if ($current_page == 'index.php') {
                         echo '<a href="index.php?page_layout=logout">Thoát</a>';
+                    } else { // Nếu đang ở trang index.php hoặc các trang khác
+                        echo '<a href="../index.php?page_layout=logout">Thoát</a>';
                     }
                     echo '<a href="index.php?page_layout=logout">Thoát</a>';
                 } else {
@@ -149,17 +168,17 @@ $html_sp_lienquan = show_product_lienquan($related_product);
         <nav class="humberger__menu__nav mobile-menu">
             <ul>
                 <li class="active"><a href="../index.php">Home</a></li>
-                <li><a href="../index.php?page_layout=product">Sản phẩm </a>
+                <li><a href="?page_layout=product">Sản phẩm <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                     <ul class="header__menu__dropdown">
                         <?php
                         // Kiểm tra xem trang hiện tại có phải là trang product.php hay không
 
                         foreach ($category_list as $item) {
                             // Nếu đang ở trang product.php
-                            if ($current_page == 'product.php') {
-                                echo '<li><a href="../index.php?page_layout=product&id=' . $item['category_id'] . '">' . $item['name_cate'] . '</a></li>';
-                            } else { // Nếu đang ở trang index.php hoặc các trang khác
+                            if ($current_page == 'index.php') {
                                 echo '<li><a href="index.php?page_layout=product&id=' . $item['category_id'] . '">' . $item['name_cate'] . '</a></li>';
+                            } else { // Nếu đang ở trang index.php hoặc các trang khác
+                                echo '<li><a href="../index.php?page_layout=product&id=' . $item['category_id'] . '">' . $item['name_cate'] . '</a></li>';
                             }
                         }
                         ?>
@@ -236,10 +255,10 @@ $html_sp_lienquan = show_product_lienquan($related_product);
                                 <?php
                                 if (isset($_SESSION['username']) && ($_SESSION['username'] != "")) {
                                     echo '<a href="../index.php?page_layout=userinfo">' . $_SESSION['username'] . '</a>';
-                                    if ($current_page == 'index.php') {
-                                        echo '<a href="index.php?page_layout=logout">Thoát</a>';
-                                    }  else {
+                                    if ($current_page == 'userinfo.php') {
                                         echo '<a href="../index.php?page_layout=logout">Thoát</a>';
+                                    } else { // Nếu đang ở trang index.php hoặc các trang khác
+                                        echo '<a href="index.php?page_layout=logout">Thoát</a>';
                                     }
                                 } else {
                                 ?>
@@ -262,10 +281,16 @@ $html_sp_lienquan = show_product_lienquan($related_product);
                     <nav class="header__menu">
                         <ul>
                             <li class="active"><a href="../index.php">Home</a></li>
-                            <li><a href="../index.php?page_layout=product">Sản phẩm <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
+                            <li><a href="product.php?page_layout=product">Sản phẩm <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                                 <ul class="header__menu__dropdown">
                                     <?php
-                                    show_cate($category_list);
+                                    foreach ($category_list as $item) {
+                                        if ($current_page == "index.php") {
+                                            echo '<li><a href="index.php?page_layout=product&id=' . $item['category_id'] . '">' . $item['name_cate'] . '</a></li>';
+                                        } else {
+                                            echo '<li><a href="../index.php?page_layout=product&id=' . $item['category_id'] . '">' . $item['name_cate'] . '</a></li>';
+                                        }
+                                    }
 
                                     ?>
                                 </ul>
@@ -290,7 +315,7 @@ $html_sp_lienquan = show_product_lienquan($related_product);
                             <li><a href="#"><i class="fa fa-heart"></i> <span>1</span></a></li>
                             <li><a href="cart.php"><i class="fa fa-shopping-bag"></i> <span><?= $total_items ?></span></a></li>
                         </ul>
-                        <div class="header__cart__price">item: <span><span><?= number_format($total_price, 0, ',', '.') ?>đ</span></div>
+                        <div class="header__cart__price">item: <span><?= number_format($total_price, 0, ',', '.') ?>đ</span></div>
                     </div>
                 </div>
             </div>
@@ -313,7 +338,13 @@ $html_sp_lienquan = show_product_lienquan($related_product);
                         </div>
                         <ul>
                             <?php
-                            show_cate($category_list);
+                            foreach ($category_list as $item) {
+                                if ($current_page == 'index.php') {
+                                    echo '<li><a href="index.php?page_layout=product&id=' . $item['category_id'] . '">' . $item['name_cate'] . '</a></li>';
+                                } else { // Nếu đang ở trang index.php hoặc các trang khác
+                                    echo '<li><a href="../index.php?page_layout=product&id=' . $item['category_id'] . '">' . $item['name_cate'] . '</a></li>';
+                                }
+                            }
 
                             ?>
                             <!-- <li><a href="#">Sen đá</a></li>
@@ -335,8 +366,6 @@ $html_sp_lienquan = show_product_lienquan($related_product);
                                 <input type="text" placeholder="What do you need?" name="search">
                                 <button type="submit" class="site-btn">SEARCH</button>
                             </form>
-
-
                         </div>
                         <div class="hero__search__phone">
                             <div class="hero__search__phone__icon">
@@ -352,7 +381,7 @@ $html_sp_lienquan = show_product_lienquan($related_product);
             </div>
         </div>
     </section>
-    <!-- Hero Section End -->
+
 
     <!-- Breadcrumb Section Begin -->
     <section class="breadcrumb-section set-bg">
@@ -360,12 +389,7 @@ $html_sp_lienquan = show_product_lienquan($related_product);
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <div class="breadcrumb__text">
-                        <h2>Chi tiết sản phẩm</h2>
-                        <!-- <div class="breadcrumb__option">
-                            <a href="./index.html">Home</a>
-                            <a href="./index.html">Vegetables</a>
-                            <span>Vegetable’s Package</span>
-                        </div> -->
+                        <h2>Thanh Toán</h2>
                     </div>
                 </div>
             </div>
@@ -373,150 +397,94 @@ $html_sp_lienquan = show_product_lienquan($related_product);
     </section>
     <!-- Breadcrumb Section End -->
 
-    <!-- Product Details Section Begin -->
-    <section class="product-details spad">
+    <!-- Checkout Section Begin -->
+    <section class="checkout spad">
         <div class="container">
-            <div class="row">
-                <!-- Hình ảnh sản phẩm -->
-                <div class="col-lg-6 col-md-6">
-                    <div class="product__details__pic">
-                        <div class="product__details__pic__item">
-                            <img class="product__details__pic__item--large" src="../img/product/<?= $product_detail['image_product'] ?>" alt="<?= htmlspecialchars($product_detail['name_product']) ?>">
+            <div class="checkout__form">
+                <h4>Chi Tiết Thanh Toán</h4>
+                <form action="" method="POST">
+                    <div class="row">
+                        <!-- Thông tin thanh toán -->
+                        <div class="col-lg-7 col-md-6">
+
+                            <div class="checkout__input">
+                                <p>Họ và Tên<span>*</span></p>
+                                <input type="text" name="fullname" value="<?= htmlspecialchars($userData['fullname']); ?>" required>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Số Điện Thoại<span>*</span></p>
+                                <input type="text" name="phone" value="<?= htmlspecialchars($userData['phone_number']) ?>" required>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Địa Chỉ<span>*</span></p>
+                                <input type="text" name="address" value="<?= htmlspecialchars($userData['address']) ?>" required>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Email<span>*</span></p>
+                                <input type="email" name="email" value="<?= htmlspecialchars($userData['email']) ?>" required>
+                            </div>
+                            <div class="checkout__input">
+                                <p>Ghi Chú</p>
+                                <textarea type="text" name="note" placeholder="Ghi chú về đơn hàng của bạn" rows="4" style="width: 100%;"></textarea>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Thông tin sản phẩm -->
-                <div class="col-lg-6 col-md-6">
-                    <div class="product__details__text">
-                        <h3><?= htmlspecialchars($product_detail['name_product']) ?></h3>
-                        <div class="product__details__price"><?= number_format($product_detail['price'], 0, ',', '.') ?>đ</div>
+                        <!-- Đơn hàng của bạn -->
+                        <div class="col-lg-5 col-md-6">
+                            <div class="checkout__order">
+                                <h4>Đơn Hàng Của Bạn</h4>
+                                <div class="checkout__order__products">Sản Phẩm <span>Thành Tiền</span></div>
+                                <ul>
+                                    <?php foreach ($_SESSION['cart'] as $item): ?>
+                                        <li>
+                                            <div class="order_item">
+                                                <img src="../img/product/<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" width="50" height="50">
+                                                <span><?php echo htmlspecialchars($item['name']); ?> x <?php echo $item['quantity']; ?></span>
+                                                <span><?php echo number_format($item['price'] * $item['quantity'], 0, ',', '.') . 'đ'; ?></span>
+                                            </div>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                                <div class="checkout__order__subtotal">Tạm Tính <span><?php echo number_format($total_price, 0, ',', '.') . 'đ'; ?></span></div>
+                                <div class="checkout__order__total">Tổng Cộng <span><?php echo number_format($total_price, 0, ',', '.') . 'đ'; ?></span></div>
 
-                        <div class="product__details__quantity">
-                            <form method="GET" action="../view/cart.php">
-                                <input type="hidden" name="action" value="add">
-                                <input type="hidden" name="id" value="<?= $product_detail['product_id'] ?>">
-                                <div class="quantity">
-                                    <div class="pro-qty">
-                                        <input type="number" name="quantity" value="1" min="1">
+                                <!-- Phương thức thanh toán -->
+                                <div>
+                                    <h4>Phương thức thanh toán</h4>
+                                    <div class="checkout__input__checkbox">
+                                        <label for="payment1">
+                                            Thanh toán khi nhận hàng
+                                            <input type="radio" id="payment1" name="payment_method" value="cod" checked>
+                                            <span class="checkmark"></span>
+                                        </label>
+                                    </div>
+                                    <div class="checkout__input__checkbox">
+                                        <label for="payment2">
+                                            Thanh toán online
+                                            <input type="radio" id="payment2" name="payment_method" value="online">
+                                            <span class="checkmark"></span>
+                                        </label>
                                     </div>
                                 </div>
-                                <button type="submit" class="primary-btn">Thêm vào giỏ hàng</button>
-                            </form>
 
+                                <!-- Nút đặt hàng -->
+                                <button type="submit" class="site-btn">ĐẶT HÀNG</button>
+                            </div>
                         </div>
-                        <ul>
-                            <li><b>Trạng thái:</b> <span>Còn hàng</span></li>
-                            <li><b>Vận chuyển:</b> <span>Giao hàng trong 1 ngày. Miễn phí nhận hàng hôm nay.</span></li>
-                            <li><b>Trọng lượng:</b> <span>0.5 kg</span></li>
-                        </ul>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-12">
-            <div class="product__details__tab">
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a style="margin-left: 0;" class="nav-link active" data-toggle="tab" href="#tabs-1" role="tab"
-                            aria-selected="true">MÔ TẢ SẢN PHẨM</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="tab-content">
-                <div class="tab-pane active" id="tabs-1" role="tabpanel">
-                    <div class="product__details__tab__desc">
-                        <p><?= htmlspecialchars($product_detail['description']) ?></p>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </section>
-    <!-- Product Details Section End -->
-
-    <!-- Related Product Section Begin -->
-    <section class="related-product">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="section-title related__product__title">
-                        <h2>Sản phẩm liên quan</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <?= $html_sp_lienquan;  ?>
-                <!-- <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-1.jpg">
-                            <ul class="product__item__pic__hover">
-                                <li><a href="#"><i class="fa fa-heart"></i></a></li>
-                                <li><a href="#"><i class="fa fa-retweet"></i></a></li>
-                                <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6><a href="#">Crab Pool Security</a></h6>
-                            <h5>$30.00</h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-2.jpg">
-                            <ul class="product__item__pic__hover">
-                                <li><a href="#"><i class="fa fa-heart"></i></a></li>
-                                <li><a href="#"><i class="fa fa-retweet"></i></a></li>
-                                <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6><a href="#">Crab Pool Security</a></h6>
-                            <h5>$30.00</h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-3.jpg">
-                            <ul class="product__item__pic__hover">
-                                <li><a href="#"><i class="fa fa-heart"></i></a></li>
-                                <li><a href="#"><i class="fa fa-retweet"></i></a></li>
-                                <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6><a href="#">Crab Pool Security</a></h6>
-                            <h5>$30.00</h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-7.jpg">
-                            <ul class="product__item__pic__hover">
-                                <li><a href="#"><i class="fa fa-heart"></i></a></li>
-                                <li><a href="#"><i class="fa fa-retweet"></i></a></li>
-                                <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6><a href="#">Crab Pool Security</a></h6>
-                            <h5>$30.00</h5>
-                        </div>
-                    </div>
-                </div> -->
-            </div>
-        </div>
-    </section>
-    <!-- Related Product Section End -->
+    <!-- Checkout Section End -->
 
     <!-- Footer Section Begin -->
-    <?php
-    require_once "footer.php";
-    ?>
+    <?php include "footer.php"; ?>
+    <!-- Footer Section End -->
 
-
-</body>
+    <!-- Js Plugins -->
+    <script src="../js/jquery-3.3.1.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- Các plugin khác nếu cần -->
 
 </html>

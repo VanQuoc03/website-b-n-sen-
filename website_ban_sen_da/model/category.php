@@ -13,6 +13,16 @@ function getall_category()
     }
 }
 
+function get_one_cate($category)
+{
+    $conn = connectdb();
+    $sql = "SELECT * FROM categories WHERE category_id = :category_id";
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 
 function show_cate($category_list)
 {

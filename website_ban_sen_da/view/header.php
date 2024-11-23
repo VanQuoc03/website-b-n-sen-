@@ -66,7 +66,7 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
         <div class="humberger__menu__cart">
             <ul>
                 <li><a href="#"><i class="fa fa-heart"></i> <span>1</span></a></li>
-                <li><a href="cart.php"><i class="fa fa-shopping-bag"></i> <span><?php echo count($_SESSION['cart'] ?? []); ?></span></a></li>
+                <li><a href="view/cart.php"><i class="fa fa-shopping-bag"></i> <span><?php echo count($_SESSION['cart'] ?? []); ?></span></a></li>
             </ul>
             <div class="header__cart__price">Total: <span><?php echo number_format($total_price, 0, ',', '.') ?>đ</span></div>
         </div>
@@ -194,7 +194,7 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
                     <div class="header__cart">
                         <ul>
                             <li><a href="#"><i class="fa fa-heart"></i> <span>1</span></a></li>
-                            <li><a href="cart.php"><i class="fa fa-shopping-bag"></i> <span><?php echo count($_SESSION['cart'] ?? []); ?></span></a></li>
+                            <li><a href="view/cart.php"><i class="fa fa-shopping-bag"></i> <span><?php echo count($_SESSION['cart'] ?? []); ?></span></a></li>
                         </ul>
                         <div class="header__cart__price">Total: <span><?php echo number_format($total_price, 0, ',', '.') ?>đ</span></div>
                     </div>
@@ -256,7 +256,7 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     <!-- Hero Section End -->
 
     <!-- Breadcrumb Section Begin -->
-    <section class="breadcrumb-section set-bg" data-setbg="../img/breadcrumb.jpg">
+    <section class="breadcrumb-section set-bg">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
