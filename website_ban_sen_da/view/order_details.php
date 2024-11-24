@@ -4,7 +4,7 @@ require '../model/config.php';
 require '../model/orders.php';
 
 
-$order_code = randomOrderID();
+
 
 // Lấy order_id từ GET
 $order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
@@ -13,12 +13,27 @@ $stmt = $conn->prepare("SELECT * FROM orders WHERE id = :order_id");
 $stmt->bindParam(':order_id', $order_id);
 $stmt->execute();
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$order_id) {
+
+// Nếu không tìm thấy đơn hàng
+if (!$order_id || !$order) {
     die("Đã xảy ra lỗi. Không tìm thấy ID đơn hàng.");
 }
-// Nếu không tìm thấy đơn hàng
-if (!$order) {
-    die("Không tìm thấy đơn hàng.");
+
+
+if (isset($_GET['cancel_order'])) {
+    $cancel_order_id = intval($_GET['cancel_order']);
+
+    // Cập nhật trạng thái đơn hàng thành "cancelled"
+    $stmt = $conn->prepare("UPDATE orders SET status = 'cancelled' WHERE id = :order_id");
+    $stmt->bindParam(':order_id', $cancel_order_id);
+    $stmt->execute();
+
+    header("Location: order_details.php?order_id=$cancel_order_id&message=cancelled");
+    exit();
+}
+
+if (isset($_GET['message']) && $_GET['message'] === 'cancelled') {
+    echo "<div class='alert alert-success text-center'>Đơn hàng đã được hủy thành công.</div>";
 }
 
 // Truy vấn chi tiết đơn hàng
@@ -26,6 +41,10 @@ $stmt = $conn->prepare("SELECT * FROM order_details WHERE order_id = :order_id")
 $stmt->bindParam(':order_id', $order_id);
 $stmt->execute();
 $order_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$order_code = $order['order_code'];
+
+
 ?>
 
 <!DOCTYPE html>
@@ -49,6 +68,7 @@ $order_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <p>Ngày đặt hàng: <?= htmlspecialchars($order['order_date']) ?></p>
             <p>Tổng tiền: <?= number_format($order['total_amount'], 0, ',', '.') ?>đ</p>
             <p>Ghi chú: <?= htmlspecialchars($order['note']) ?></p>
+
 
             <h3>Sản phẩm:</h3>
             <table class="table table-striped">
@@ -78,6 +98,14 @@ $order_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </tfoot>
             </table>
             <a href="../index.php" class="btn-back">Quay lại Trang chủ</a>
+            <div style="float: right;">
+                <?php if ($order['status'] === 'pending'): ?>
+                    <a href="order_details.php?order_id=<?= $order['id'] ?>&cancel_order=<?= $order['id'] ?>" class="btn btn-danger">Hủy đơn hàng</a>
+
+                <?php else: ?>
+                    <p class="text-warning"><strong><?= htmlspecialchars($order['status']) ?></strong></p>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </body>

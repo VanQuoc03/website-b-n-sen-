@@ -1,8 +1,22 @@
 <?php
 require_once '/wampp/www/website_ban_sen_da/model/config.php';
-$connect = connectdb();
-$query = $connect->query("SELECT * FROM categories");
-$query->setFetchMode(PDO::FETCH_ASSOC);
+$stmt = $conn->prepare("SELECT * FROM orders ORDER BY order_date DESC");
+$stmt->execute();
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'], $_POST['status'])) {
+    $order_id = $_POST['order_id'];
+    $new_status = $_POST['status'];
+
+    $stmt = $conn->prepare("UPDATE orders SET status = :status where id = :order_id");
+    $stmt->bindParam(':status', $new_status);
+    $stmt->bindParam(':order_id', $order_id);
+    $stmt->execute();
+
+    header("Location: orders.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +29,7 @@ $query->setFetchMode(PDO::FETCH_ASSOC);
         crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style1.css">
-    <title>Quản lý Danh mục</title>
+    <title>Quản lý đơn đặt hàng</title>
 </head>
 
 <body>
@@ -32,7 +46,7 @@ $query->setFetchMode(PDO::FETCH_ASSOC);
             <li class="active">
                 <a href="/Admin/Products/category_product.php">
                     <i class="fas fa-tachometer-alt"></i>
-                    <span>Quản lý sản phẩm</span>
+                    <span>Quản lý đơn đặt hàng</span>
                     <ul class="submenu">
                         <li><a href="/Admin/Products/category_product.php">
                                 <span>Danh sách sản phẩm</span>
@@ -50,7 +64,7 @@ $query->setFetchMode(PDO::FETCH_ASSOC);
                 </a>
             </li>
             <li>
-                <a href="/Admin/orders/orders.php">
+                <a href="#">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Quản lý đơn đặt hàng</span>
                 </a>
@@ -74,44 +88,50 @@ $query->setFetchMode(PDO::FETCH_ASSOC);
     <div class="container-fluid">
         <div class="card">
             <div class="card-header">
-                <h2>Danh mục</h2>
+                <h2>Danh sách đơn đặt hàng</h2>
             </div>
             <div class="card-body">
                 <table class="table">
                     <thead class="thead-dark">
                         <tr>
-                            <th>STT</th>
-                            <th>Tên danh mục</th>
-                            <th>Sửa</th>
-                            <th>Xóa</th>
+                            <th>ID</th>
+                            <th>Mã đơn hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Ngày đặt</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+
                         </tr>
                     </thead>
                     <tbody>
-                        <?php
-                        $i = 1;
-                        while ($row = $query->fetch()) {
-                        ?>
+                        <?php foreach ($orders as $order): ?>
                             <tr>
-                                <td><?php echo $i++; ?></td>
-                                <td><?php echo $row['name_cate']; ?></td>
+                                <th><?= htmlspecialchars($order['id']); ?></th>
+                                <th><?= htmlspecialchars($order['order_code']); ?></th>
+                                <th><?= htmlspecialchars($order['name']); ?></th>
+                                <th><?= htmlspecialchars($order['total_amount']); ?></th>
+                                <th><?= htmlspecialchars($order['order_date']); ?></th>
+                                <th><?= htmlspecialchars($order['status']); ?></th>
                                 <td>
-                                    <a href="../index.php?page_layout=edit_category&id=<?php echo $row['category_id']; ?>">Sửa</a>
-
-                                </td>
-                                <td>
-                                    <a onclick="return Del('<?php echo $row['name_cate']; ?>')" href="../index.php?page_layout=delete_category&id=<?php echo $row['category_id']; ?>">Xóa</a>
+                                    <form action="" method="POST">
+                                        <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
+                                        <select name="status" id="" class="form-control">
+                                            <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
+                                            <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Đang giao hàng</option>
+                                            <option value="completed" <?= $order['status'] === 'completed' ? 'selected' : '' ?>>Hoàn thành</option>
+                                            <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
+                                        </select>
+                                        <button type="submit" name="update_status" class="btn btn-primary btn-sm mt-2">Cập nhật</button>
+                                    </form>
                                 </td>
                             </tr>
-                        <?php } ?>
+
+                        <?php endforeach; ?>
+
                     </tbody>
                 </table>
-                <a href="../index.php?page_layout=add_category" class="btn btn-primary">Thêm Danh mục</a>
             </div>
         </div>
     </div>
 </body>
-<script>
-    function Del(name) {
-        return confirm("Bạn có chắc chắn muốn xóa sản phẩm: " + name + "?");
-    }
-</script>

@@ -22,7 +22,7 @@ if (!isset($_SESSION['order_success']) || $_SESSION['order_success'] !== true) {
     exit();
 }
 
- // Nếu chưa đăng nhập, chuyển hướng về trang login
+// Nếu chưa đăng nhập, chuyển hướng về trang login
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit();
@@ -70,7 +70,7 @@ unset($_SESSION['order_success']);
         <div class="container text-center">
             <h3 class="mt-5 mb-3">Cảm ơn bạn đã đặt hàng!</h3>
             <p class="mb-4">Đơn hàng của bạn đã được đặt thành công. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.</p>
-            <p><a href="order_details.php?order_id=<?= htmlspecialchars($order_id) ?>">Xem chi tiết đơn hàng</a></p>
+            <p><a href="order_details.php?order_id=<?= htmlspecialchars($order_id) ?> " class="site-btn">Xem chi tiết đơn hàng</a></p>
             <a href="../index.php" class="site-btn">Quay lại Trang Chủ</a>
         </div>
     </section>
