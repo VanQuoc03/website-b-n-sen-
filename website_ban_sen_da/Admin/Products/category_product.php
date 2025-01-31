@@ -1,5 +1,5 @@
 <body>
-    <?php require_once '../../Admin/Products/header.php' ?>
+    <?php require_once '/wampp/www/website_ban_sen_da/Admin/Products/header.php' ?>
     <div class="main--content">
 
         <div class="header--wrapper">

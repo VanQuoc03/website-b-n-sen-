@@ -13,7 +13,6 @@ if (isset($_SESSION['role']) && ($_SESSION['role'] == 1)) {
 
     // Kết nối với file config
     require_once $config_path;
-
 ?>
     <!DOCTYPE html>
     <html lang="en">
@@ -76,9 +75,7 @@ if (isset($_SESSION['role']) && ($_SESSION['role'] == 1)) {
                 break;
         }
     } else {
-        header("Location: ../Admin/Products/category_product.php");
-        exit;
-        // require_once '../Admin/Products/category_product.php';
+        require_once '../Admin/Products/category_product.php';
     }
 } else {
     header('location: login.php');

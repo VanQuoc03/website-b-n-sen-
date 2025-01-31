@@ -28,7 +28,7 @@
                                 <td><?php echo $row['name_product']; ?></td>
                                 <td><?php echo $row['description']; ?></td>
                                 <td>
-                                    <img style="width: 100px" src="/img/product/<?php echo $row['image_product']; ?>" alt="">
+                                    <img style="width: 100px" src="/img/<?php echo $row['image_product']; ?>" alt="">
                                 </td>
                                 <td><?php echo $row['price']; ?></td>
                                 <td><?php echo $row['name_cate']; ?></td>

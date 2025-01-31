@@ -1,6 +1,6 @@
 <?php
 try {
-    include_once '/wampp/www/website_ban_sen_da/model/config.php';
+    include_once '../../model/config.php';
     $connect = connectdb();
     $connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
@@ -29,7 +29,7 @@ if (isset($_POST['sbm'])) {
     } else {
         $image_product = $_FILES['image_product']['name'];
         $image_tmp = $_FILES['image_product']['tmp_name'];
-        $base_path = (strpos(realpath(__DIR__), 'Products') !== false) ? realpath(__DIR__ . '/../../img/product') : realpath(__DIR__ . '/../img/product');
+        $base_path = (strpos(realpath(__DIR__), 'Products') !== false) ? realpath(__DIR__ . '/../../img/') : realpath(__DIR__ . '/../img/');
 
         if (!file_exists($base_path)) {
             mkdir($base_path, 0777, true);

@@ -39,7 +39,7 @@ if (isset($_POST['submit'])) {
             ':price' => $price,
             ':category_id' => $category_id,
         ]);
-        $base_path = (strpos(realpath(__DIR__), 'Products') !== false) ? realpath(__DIR__ . '/../../img/product') : realpath(__DIR__ . '/../img/product');
+        $base_path = (strpos(realpath(__DIR__), 'Products') !== false) ? realpath(__DIR__ . '/../../img/') : realpath(__DIR__ . '/../img/');
 
         if (!file_exists($base_path)) {
             mkdir($base_path, 0777, true); // Tạo thư mục nếu không tồn tại

@@ -50,7 +50,7 @@ $query->setFetchMode(PDO::FETCH_ASSOC);
                 </a>
             </li>
             <li>
-                <a href="/Admin/orders/orders.php">
+                <a href="#">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Quản lý đơn đặt hàng</span>
                 </a>

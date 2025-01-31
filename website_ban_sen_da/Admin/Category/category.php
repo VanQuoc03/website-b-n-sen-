@@ -15,7 +15,7 @@ $query->setFetchMode(PDO::FETCH_ASSOC);
         crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style1.css">
-    <title>Quản lý Danh mục</title>
+    <title>Quản lý sản phẩm</title>
 </head>
 
 <body>
@@ -50,7 +50,7 @@ $query->setFetchMode(PDO::FETCH_ASSOC);
                 </a>
             </li>
             <li>
-                <a href="/Admin/orders/orders.php">
+                <a href="#">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Quản lý đơn đặt hàng</span>
                 </a>
